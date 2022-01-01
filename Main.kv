@@ -1,0 +1,186 @@
+#Widget - Dialog Content
+<DialogPriorityCheckbox@MDCheckbox>:
+    group: "dialog_priority"
+    size_hint: None, None
+    size: "48dp", "48dp"
+    on_active: app.on_priority_checkbox(*args)
+<DialogContent>:
+    id: dialog_content
+    orientation: "vertical"
+    size_hint: 1, None
+    height: "190dp"
+    spacing: "1dp"
+    priority: None
+    GridLayout: 
+        rows: 1
+        MDTextField:
+            id: task_text
+            hint_text: "Name of your task"
+    GridLayout: 
+        rows: 1
+        MDLabel:
+            id: date_label
+        MDIconButton:
+            icon: "calendar-edit"
+            on_release: root.show_date_picker()
+    GridLayout: 
+        rows: 1
+        pos_hint: {"x":-.05}
+        DialogPriorityCheckbox:
+            priority: "high"
+        MDLabel:
+            text: "High"
+            theme_text_color: "Custom"
+            text_color: 1, 0, 0, 1
+        DialogPriorityCheckbox:
+            priority: "med"
+        MDLabel:
+            text: "Med"
+            theme_text_color: "Custom"
+            text_color: 1, 141/255, 48/255, 1
+        DialogPriorityCheckbox:
+            priority: "low"
+            active: True
+        MDLabel:
+            text: "Low"
+            theme_text_color: "Custom"
+            text_color: 0, 1, 0, 1
+    BoxLayout:
+        MDRaisedButton:
+            text: "OK"
+            md_bg_color: app.theme_cls.primary_dark
+            size_hint: 1, .8
+            on_release:
+                app.add_task(icon=dialog_content.priority,panel_text=task_text.text, panel_due_text=date_label.text)
+                app.close_add_task_dialog()
+        MDFlatButton:
+            text: "CANCEL"
+            on_release: app.close_add_task_dialog()
+            size_hint: 1, .8
+<EditDialogContent>: #ABSTAIN
+    id: edit_dialog_content
+    orientation: "vertical"
+#Widget - Nav Draw Items
+<NavDrawLabel@MDLabel>:
+    font_style: "Button"
+    size_hint_y: None
+    height: self.texture_size[1]
+<NavDrawPriorityIcon>:
+    theme_text_color: "Custom"
+    on_release: 
+        root.parent.set_color_item(self)
+        app.screen.ids.nav_drawer.set_state("close")
+    IconLeftWidget:
+        id: icon
+        icon: root.icon
+#Widget - Task List
+<TaskListContent>:
+    orientation: "vertical"
+    size_hint_y: None
+    spacing: "1dp"
+    height: self.minimum_height
+
+    OneLineAvatarIconListItem:
+        text: "Mark As Done"
+        _no_ripple_effect: True
+        LeftCheckbox:
+            id: checkbox
+            active: root.checkbox_status
+            on_active: app.mark_done_task(*args)
+            size_hint: None, None
+            size: "48dp", "48dp"
+    OneLineAvatarIconListItem:
+        text: "Edit"
+        on_release: app.show_edit_task_dialog(root.parent)
+        IconLeftWidget:
+            icon: "pencil"
+            _no_ripple_effect: True
+    OneLineAvatarIconListItem:
+        text: "Delete"
+        on_release: app.delete_task(root.parent)
+        IconLeftWidget:
+            icon: "trash-can-outline"
+            theme_text_color: "Custom"
+            text_color: 1, 0, 0, 1
+            _no_ripple_effect: True
+
+#Main Screen
+<MainScreen>:
+    MDNavigationLayout:
+        ScreenManager:
+            Screen:
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: "4dp"
+                    MDToolbar:
+                        title: app.title
+                        elevation: 0
+                        left_action_items : [['menu',lambda x: nav_drawer.set_state("open")]]
+                        right_action_items: [["dots-vertical",lambda x: app.menu_callback(x)]]
+                    ScreenTaskList:
+                        MDList:
+                            id: task_list_parent
+                    Screen:
+                        size_hint: 1, .05
+                        MDFloatingActionButtonSpeedDial:
+                            id: float_button
+                            icon: "plus"
+                            data: app.float_button_data
+                            label_text_color: 1, 1, 1, 1
+                            root_button_anim: True
+                            elevation_normal: 10
+                            md_bg_color: app.theme_cls.primary_dark
+                            callback: app.float_button_callback
+
+        MDNavigationDrawer:
+            id: nav_drawer
+            ContentNavigationDrawer:
+                orientation: 'vertical'
+                padding: "10dp", "0dp", "10dp", "2dp"
+                spacing: "5dp"
+                AnchorLayout:
+                    anchor_x: "left"
+                    size_hint: None, None
+                    size: icon.width, icon.height
+                    Image:
+                        id: icon
+                        size_hint: None, None
+                        size: "64dp", "64dp"
+                        source: "image/icon.png"
+                MDBoxLayout:
+                    orientation: "vertical"
+                    adaptive_height: True
+                    NavDrawLabel:
+                        text: app.title
+                        font_style: "H6"
+                    NavDrawLabel:
+                        text: "Created by Aghnat HS"
+                        font_style: "Caption"
+                MDSeparator:
+                NavDrawLabel:
+                    text: "PRIORITY"
+                ScrollView:
+                    size_hint_y: None
+                    height: "240dp"
+                    do_scroll_y: False
+                    NavDrawPriorityList:
+                        pos_hint: {"x":1}
+                        id: nav_list
+                        spacing: "1dp"
+                MDSeparator:
+                BoxLayout:
+                    orientation: "vertical"
+                    NavDrawLabel:
+                        text: "ABOUT"
+                        pos_hint: {"y":.9}
+                    ScrollView:
+                        do_scroll_y: False
+                        MDList:
+                            spacing: "1dp"
+                            OneLineAvatarIconListItem:
+                                text: "About"
+                                on_release: 
+                                    app.screen.ids.nav_drawer.set_state("close")
+                                    app.show_about_dialog()
+                                IconLeftWidget:
+                                    icon: "exclamation"
